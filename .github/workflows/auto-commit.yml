@@ -1,0 +1,52 @@
+name: Auto Commit & Push (sano branch)
+
+on:
+  schedule:
+    # \U0001f556 Runs every day at 7 PM IST (1:30 PM UTC)
+    - cron: '30 13 * * *'
+  workflow_dispatch: {}  # manual trigger from Actions tab
+  push:
+    branches: ["sano"]
+
+jobs:
+  auto-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1 \u2014 Checkout sano branch
+      - name: Checkout sano branch
+        uses: actions/checkout@v4
+        with:
+          ref: sano
+          fetch-depth: 0
+          persist-credentials: true
+
+      # Step 2 \u2014 Configure git identity
+      - name: Set up Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # Step 3 \u2014 Example change (you can replace this with your own logic)
+      - name: Make auto change
+        run: |
+          echo "Auto update from GitHub Actions on $(date)" >> AUTO_UPDATE_LOG.txt
+
+      # Step 4 \u2014 Commit & Push back to sano
+      - name: Commit & Push Changes
+        run: |
+          git add -A
+          if git diff --staged --quiet; then
+            echo "\u2705 No changes to commit."
+            exit 0
+          fi
+          git commit -m "\U0001f916 Automated update: $(date '+%Y-%m-%d %H:%M:%S')"
+          git push origin sano
+
+      # Step 5 \u2014 Merge sano branch into main (optional auto-merge)
+      - name: Merge sano \u2192 main
+        run: |
+          git fetch origin main
+          git checkout main
+          git merge sano --no-edit || true
+          git push origin main
