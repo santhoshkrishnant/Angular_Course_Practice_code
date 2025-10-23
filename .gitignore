@@ -1,0 +1,4 @@
+# Ignore system and container files
+.local/
+.cache/
+tmp/
