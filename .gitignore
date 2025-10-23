@@ -1,4 +1,10 @@
-# Ignore system and container files
-.local/
+# Node / Angular / System
+node_modules/
+dist/
 .cache/
+.local/
 tmp/
+*.log
+
+# Angular CLI files
+.angular/

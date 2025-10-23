@@ -1,34 +1,48 @@
-name: Auto Commit and Push (sano branch)
+name: Auto Push Daily
 
 on:
   schedule:
-    # Runs daily at 7:00 PM IST (13:30 UTC)
-    - cron: '30 13 * * *'
-  workflow_dispatch: {} # allows manual run from GitHub Actions tab
+    - cron: '30 13 * * *'   # 7:30 PM IST (13:30 UTC)
+  workflow_dispatch:        # allows manual run for testing
 
 jobs:
-  auto-commit:
+  auto-push:
     runs-on: ubuntu-latest
 
     steps:
+      # 1\ufe0f\u20e3 Checkout repo
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
         with:
-          ref: sano                # ✅ your branch name
-          persist-credentials: true
-          fetch-depth: 0
+          ref: sano
 
-      - name: Configure Git user
+      # 2\ufe0f\u20e3 Configure Git
+      - name: Configure Git
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "santhoshkrishnant"
+          git config user.email "your_email@example.com"
 
-      - name: Detect & commit changes
+      # 3\ufe0f\u20e3 Stage workflow and gitignore files automatically
+      - name: Stage workflow and .gitignore
         run: |
-          git add -A
-          if git diff --cached --quiet; then
-            echo "✅ No changes to commit."
-            exit 0
-          fi
-          git commit -m "🤖 Auto commit on $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-          git push origin sano
+          git add .github/workflows/auto-commit.yml
+          git add .gitignore
+          git add .
+
+      # 4\ufe0f\u20e3 Generate dynamic commit message starting from Day8
+      - name: Generate commit message
+        id: commitmsg
+        run: |
+          # If your last commit Day number was Day7, start from Day8
+          LAST_DAY=7
+          TODAY=$(date +%s)
+          DAY_COUNT=$(( LAST_DAY + 1 ))
+          DATE_STR=$(date +"%d %b")
+          echo "message=Day${DAY_COUNT} (${DATE_STR})" >> $GITHUB_OUTPUT
+
+      # 5\ufe0f\u20e3 Commit & push only if there are changes
+      - name: Commit and push changes
+        run: |
+          git diff --cached --quiet && echo "\u2705 No changes to commit" && exit 0
+          git commit -m "Auto commit: ${{ steps.commitmsg.outputs.message }}"
+          git push https://$GITHUB_ACTOR:${{ secrets.GH_PAT }}@github.com/santhoshkrishnant/Angular_Course_Practice_code.git sano
